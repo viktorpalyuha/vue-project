@@ -6,6 +6,9 @@ import CoachRegistration from './pages/coaches/CoachRegistration';
 import ContactCoach from './pages/requests/ContactCoach';
 import RequestReceived from './pages/requests/RequestsReceived';
 import NotFound from './pages/NotFound';
+import UserAuth from './pages/auth/UserAuth';
+
+import store from './store/index';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -18,10 +21,29 @@ const router = createRouter({
       props: true,
       children: [{ path: 'contact', component: ContactCoach }]
     },
-    { path: '/register', component: CoachRegistration },
-    { path: '/requests', component: RequestReceived },
+    {
+      path: '/register',
+      component: CoachRegistration,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/requests',
+      component: RequestReceived,
+      meta: { requiresAuth: true }
+    },
+    { path: '/auth', component: UserAuth, meta: { requiresUnauth: true } },
     { path: '/:notFound(.*)', component: NotFound }
   ]
+});
+
+router.beforeEach((to, from, next) => {
+  if (to.meta.requiresAuth && !store.getters.isAuthenticated) {
+    next('/auth');
+  } else if (to.meta.requiresUnauth && store.getters.isAuthenticated) {
+    next('/coaches');
+  } else {
+    next();
+  }
 });
 
 export default router;
